@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: GATEWAY-SERVICE
+  cloud:
+    gateway:
+      routes:
+        - id: settlement-service
+          uri: lb://settlement-service
+          predicates:
+            - Path=/settlment/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: settlement-service
+                fallbackuri: forward:/settlmentFallback
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/notify/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: notification-service
+                fallbackuri: forward:/notifyClaimFallBack
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+       defaultZone: http://localhost:8761/eureka/
+  instance:
+    hostname: localhost                
+
+server:
+  port: 8989
+  
+management:
+  endpoints:
+    web:
+      exposure:
+        include: hystrix.stream
+
+hystrix:
+  command:
+    fallbackcmd:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 5000  
